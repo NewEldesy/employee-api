@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Logs
+*.log
+hs_err_pid*
+
+# Secrets et configuration locale
+.env
+.env.*
+!.env.example
+
+# Fichiers système
+.DS_Store
+Thumbs.db
