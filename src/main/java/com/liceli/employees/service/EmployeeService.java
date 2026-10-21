@@ -2,48 +2,53 @@
 package com.liceli.employees.service;
 
 import com.liceli.employees.model.Employee;
+import com.liceli.employees.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class EmployeeService {
 
-    private final ConcurrentMap<Long, Employee> employees =
-            new ConcurrentHashMap<>();
+    private final EmployeeRepository employeeRepository;
 
-    private final AtomicLong nextId = new AtomicLong(1);
+    public EmployeeService(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
+    }
 
     public Employee create(Employee employee) {
-        Long id = nextId.getAndIncrement();
-        employee.setId(id);
-        employees.put(id, employee);
-        return employee;
+        // L'identifiant est généré par la base de données.
+        employee.setId(null);
+        return employeeRepository.save(employee);
     }
 
     public List<Employee> findAll() {
-        return new ArrayList<>(employees.values());
+        return employeeRepository.findAll();
     }
 
     public Employee findById(Long id) {
-        return employees.get(id);
+        return employeeRepository.findById(id).orElse(null);
     }
 
     public Employee update(Long id, Employee updatedEmployee) {
-        if (!employees.containsKey(id)) {
-            return null;
-        }
+        return employeeRepository.findById(id)
+                .map(existingEmployee -> {
+                    existingEmployee.setFirstName(updatedEmployee.getFirstName());
+                    existingEmployee.setLastName(updatedEmployee.getLastName());
+                    existingEmployee.setEmail(updatedEmployee.getEmail());
+                    existingEmployee.setDepartment(updatedEmployee.getDepartment());
 
-        updatedEmployee.setId(id);
-        employees.put(id, updatedEmployee);
-        return updatedEmployee;
+                    return employeeRepository.save(existingEmployee);
+                })
+                .orElse(null);
     }
 
     public boolean delete(Long id) {
-        return employees.remove(id) != null;
+        if (!employeeRepository.existsById(id)) {
+            return false;
+        }
+
+        employeeRepository.deleteById(id);
+        return true;
     }
 }

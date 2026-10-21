@@ -2,50 +2,66 @@
 package com.liceli.employees.service;
 
 import com.liceli.employees.model.Employee;
+import com.liceli.employees.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class EmployeeServiceTest {
+
+    @Mock
+    private EmployeeRepository employeeRepository;
 
     private EmployeeService employeeService;
 
     @BeforeEach
     void setUp() {
-        employeeService = new EmployeeService();
+        employeeService = new EmployeeService(employeeRepository);
     }
 
     @Test
-    void shouldCreateAndFindEmployee() {
-        Employee employee = new Employee(
-                null,
-                "Amina",
-                "Traore",
-                "amina@example.com",
-                "Informatique"
-        );
+    void createShouldSaveEmployee() {
+        Employee employee = new Employee();
+        employee.setFirstName("Ramel");
+        employee.setLastName("Makosso");
 
-        Employee created = employeeService.create(employee);
+        when(employeeRepository.save(employee)).thenReturn(employee);
 
-        assertNotNull(created.getId());
-        assertEquals("Amina", created.getFirstName());
-        assertEquals(created, employeeService.findById(created.getId()));
+        Employee result = employeeService.create(employee);
+
+        assertNotNull(result);
+        verify(employeeRepository).save(employee);
     }
 
     @Test
-    void shouldDeleteEmployee() {
-        Employee employee = new Employee(
-                null,
-                "Amina",
-                "Traore",
-                "amina@example.com",
-                "Informatique"
-        );
+    void findByIdShouldReturnEmployeeWhenFound() {
+        Employee employee = new Employee();
+        employee.setId(1L);
 
-        Employee created = employeeService.create(employee);
+        when(employeeRepository.findById(1L))
+                .thenReturn(Optional.of(employee));
 
-        assertTrue(employeeService.delete(created.getId()));
-        assertNull(employeeService.findById(created.getId()));
+        Employee result = employeeService.findById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+    }
+
+    @Test
+    void deleteShouldReturnFalseWhenEmployeeDoesNotExist() {
+        when(employeeRepository.existsById(99L)).thenReturn(false);
+
+        boolean result = employeeService.delete(99L);
+
+        assertFalse(result);
+        verify(employeeRepository, never()).deleteById(99L);
     }
 }

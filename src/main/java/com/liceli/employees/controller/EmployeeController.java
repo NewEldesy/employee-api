@@ -3,17 +3,33 @@ package com.liceli.employees.controller;
 
 import com.liceli.employees.model.Employee;
 import com.liceli.employees.service.EmployeeService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 import jakarta.validation.Valid;
 
+
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeController {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationErrors(
+            MethodArgumentNotValidException exception) {
+
+        var errors = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
 
     private final EmployeeService employeeService;
 
