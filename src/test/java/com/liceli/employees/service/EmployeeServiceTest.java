@@ -45,8 +45,8 @@ class EmployeeServiceTest {
         EmployeeResponse result = employeeService.create(request);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Ramel", result.getFirstName());
+        assertEquals(1L, result.id());
+        assertEquals("Ramel", result.firstName());
         verify(employeeRepository).save(any(Employee.class));
     }
 
@@ -58,7 +58,7 @@ class EmployeeServiceTest {
         EmployeeResponse result = employeeService.findById(1L);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
+        assertEquals(1L, result.id());
     }
 
     @Test
