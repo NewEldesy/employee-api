@@ -44,3 +44,6 @@ hs_err_pid*
 # Fichiers système
 .DS_Store
 Thumbs.db
+
+# Docker
+docker-compose.override.yml
