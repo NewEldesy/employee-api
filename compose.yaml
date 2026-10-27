@@ -36,6 +36,7 @@ services:
     ports:
       - "8080:8080"
 
+<<<<<<< HEAD
   # ── phpMyAdmin (outil d'administration — décommenter si nécessaire) ──────
   # phpmyadmin:
   #   image: phpmyadmin:5.2
@@ -49,5 +50,7 @@ services:
   #   ports:
   #     - "8081:80"
 
+=======
+>>>>>>> f990ef5 (chore: ajout de la configuration Docker)
 volumes:
   mysql_data:
