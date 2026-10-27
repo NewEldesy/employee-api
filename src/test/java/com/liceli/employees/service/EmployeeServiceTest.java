@@ -3,6 +3,7 @@ package com.liceli.employees.service;
 
 import com.liceli.employees.dto.EmployeeRequest;
 import com.liceli.employees.dto.EmployeeResponse;
+import com.liceli.employees.exception.EmployeeNotFoundException;
 import com.liceli.employees.model.Employee;
 import com.liceli.employees.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,12 +62,10 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void deleteShouldReturnFalseWhenEmployeeDoesNotExist() {
+    void deleteShouldThrowWhenEmployeeDoesNotExist() {
         when(employeeRepository.existsById(99L)).thenReturn(false);
 
-        boolean result = employeeService.delete(99L);
-
-        assertFalse(result);
+        assertThrows(EmployeeNotFoundException.class, () -> employeeService.delete(99L));
         verify(employeeRepository, never()).deleteById(99L);
     }
 }

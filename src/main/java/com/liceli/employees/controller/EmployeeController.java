@@ -5,16 +5,17 @@ import com.liceli.employees.dto.EmployeeRequest;
 import com.liceli.employees.dto.EmployeeResponse;
 import com.liceli.employees.service.EmployeeService;
 
+import com.liceli.employees.exception.GlobalExceptionHandler.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,24 +25,9 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/employees")
-@Tag(
-    name = "Employees",
-    description = "API de gestion des employés"
-)
+@Tag(name = "Employees", description = "API de gestion des employés")
+@SecurityRequirement(name = "bearerAuth")
 public class EmployeeController {
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationErrors(
-            MethodArgumentNotValidException exception) {
-
-        var errors = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .toList();
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-    }
 
     private final EmployeeService employeeService;
 
@@ -148,17 +134,16 @@ public class EmployeeController {
         description = "Recherche un employé à partir de son identifiant."
     )
     @ApiResponse(responseCode = "200", description = "Employé trouvé")
-    @ApiResponse(responseCode = "404", description = "Employé introuvable")
+    @ApiResponse(responseCode = "404", description = "Employé introuvable",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(value = """
+                {"message": "Employé introuvable : id=42"}
+                """)))
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeResponse> findById(
             @PathVariable Long id) {
-        EmployeeResponse response = employeeService.findById(id);
-
-        if (response == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(employeeService.findById(id));
     }
 
     @Operation(
@@ -203,18 +188,17 @@ public class EmployeeController {
             )
         )
     )
-    @ApiResponse(responseCode = "404", description = "Employé introuvable")
+    @ApiResponse(responseCode = "404", description = "Employé introuvable",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(value = """
+                {"message": "Employé introuvable : id=42"}
+                """)))
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody EmployeeRequest request) {
-        EmployeeResponse updated = employeeService.update(id, request);
-
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(employeeService.update(id, request));
     }
 
     @Operation(
@@ -222,16 +206,16 @@ public class EmployeeController {
         description = "Supprime un employé à partir de son identifiant."
     )
     @ApiResponse(responseCode = "204", description = "Employé supprimé avec succès")
-    @ApiResponse(responseCode = "404", description = "Employé introuvable")
+    @ApiResponse(responseCode = "404", description = "Employé introuvable",
+        content = @Content(mediaType = "application/json",
+            schema = @Schema(implementation = ErrorResponse.class),
+            examples = @ExampleObject(value = """
+                {"message": "Employé introuvable : id=42"}
+                """)))
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id) {
-        boolean deleted = employeeService.delete(id);
-
-        if (!deleted) {
-            return ResponseEntity.notFound().build();
-        }
-
+        employeeService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -2,6 +2,7 @@ package com.liceli.employees.service;
 
 import com.liceli.employees.dto.EmployeeRequest;
 import com.liceli.employees.dto.EmployeeResponse;
+import com.liceli.employees.exception.EmployeeNotFoundException;
 import com.liceli.employees.model.Employee;
 import com.liceli.employees.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
@@ -31,27 +32,24 @@ public class EmployeeService {
     public EmployeeResponse findById(Long id) {
         return employeeRepository.findById(id)
                 .map(this::toResponse)
-                .orElse(null);
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
     }
 
     public EmployeeResponse update(Long id, EmployeeRequest request) {
-        return employeeRepository.findById(id)
-                .map(existing -> {
-                    existing.setFirstName(request.getFirstName());
-                    existing.setLastName(request.getLastName());
-                    existing.setEmail(request.getEmail());
-                    existing.setDepartment(request.getDepartment());
-                    return toResponse(employeeRepository.save(existing));
-                })
-                .orElse(null);
+        Employee existing = employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+        existing.setFirstName(request.getFirstName());
+        existing.setLastName(request.getLastName());
+        existing.setEmail(request.getEmail());
+        existing.setDepartment(request.getDepartment());
+        return toResponse(employeeRepository.save(existing));
     }
 
-    public boolean delete(Long id) {
+    public void delete(Long id) {
         if (!employeeRepository.existsById(id)) {
-            return false;
+            throw new EmployeeNotFoundException(id);
         }
         employeeRepository.deleteById(id);
-        return true;
     }
 
     private Employee toEntity(EmployeeRequest request) {

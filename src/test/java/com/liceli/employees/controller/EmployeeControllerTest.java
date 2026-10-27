@@ -9,6 +9,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.liceli.employees.exception.EmployeeNotFoundException;
 import com.liceli.employees.security.CustomUserDetailsService;
 import com.liceli.employees.security.JwtUtil;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
@@ -21,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -67,7 +69,7 @@ class EmployeeControllerTest {
 
     @Test
     void findByIdShouldReturn404WhenEmployeeDoesNotExist() throws Exception {
-        when(employeeService.findById(999L)).thenReturn(null);
+        when(employeeService.findById(999L)).thenThrow(new EmployeeNotFoundException(999L));
 
         mockMvc.perform(get("/api/employees/999"))
                 .andExpect(status().isNotFound());
@@ -110,15 +112,13 @@ class EmployeeControllerTest {
 
     @Test
     void deleteShouldReturn204WhenEmployeeExists() throws Exception {
-        when(employeeService.delete(7L)).thenReturn(true);
-
         mockMvc.perform(delete("/api/employees/7"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     void deleteShouldReturn404WhenEmployeeDoesNotExist() throws Exception {
-        when(employeeService.delete(99L)).thenReturn(false);
+        doThrow(new EmployeeNotFoundException(99L)).when(employeeService).delete(99L);
 
         mockMvc.perform(delete("/api/employees/99"))
                 .andExpect(status().isNotFound());
