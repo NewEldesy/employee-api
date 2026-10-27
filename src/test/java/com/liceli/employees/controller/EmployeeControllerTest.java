@@ -9,6 +9,10 @@ import tools.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.liceli.employees.security.CustomUserDetailsService;
+import com.liceli.employees.security.JwtUtil;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -21,7 +25,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(EmployeeController.class)
+@WebMvcTest(value = EmployeeController.class,
+        excludeAutoConfiguration = {ServletWebSecurityAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 class EmployeeControllerTest {
 
@@ -33,6 +38,12 @@ class EmployeeControllerTest {
 
     @MockitoBean
     private EmployeeService employeeService;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private JwtUtil jwtUtil;
 
     @Test
     void createShouldReturn201() throws Exception {

@@ -27,11 +27,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
+import com.liceli.employees.security.JwtAuthFilter;
+import com.liceli.employees.security.JwtUtil;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 
 @WebMvcTest(value = EmployeeController.class, excludeAutoConfiguration = {UserDetailsServiceAutoConfiguration.class})
 @AutoConfigureMockMvc
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JwtAuthFilter.class, JwtUtil.class})
 class EmployeeSecurityTest {
 
     @Autowired

@@ -18,8 +18,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.TestConfiguration;
+import com.liceli.employees.security.JwtAuthFilter;
+import com.liceli.employees.security.JwtUtil;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 
 import org.springframework.web.server.ResponseStatusException;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.doThrow;
 
 @WebMvcTest(value = PasswordResetController.class, excludeAutoConfiguration = {UserDetailsServiceAutoConfiguration.class})
 @AutoConfigureMockMvc
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, JwtAuthFilter.class, JwtUtil.class})
 class PasswordResetSecurityTest {
 
     @Autowired
