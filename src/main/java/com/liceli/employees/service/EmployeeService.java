@@ -1,6 +1,7 @@
-
 package com.liceli.employees.service;
 
+import com.liceli.employees.dto.EmployeeRequest;
+import com.liceli.employees.dto.EmployeeResponse;
 import com.liceli.employees.model.Employee;
 import com.liceli.employees.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
@@ -16,29 +17,31 @@ public class EmployeeService {
         this.employeeRepository = employeeRepository;
     }
 
-    public Employee create(Employee employee) {
-        // L'identifiant est généré par la base de données.
-        employee.setId(null);
-        return employeeRepository.save(employee);
+    public EmployeeResponse create(EmployeeRequest request) {
+        Employee employee = toEntity(request);
+        return toResponse(employeeRepository.save(employee));
     }
 
-    public List<Employee> findAll() {
-        return employeeRepository.findAll();
+    public List<EmployeeResponse> findAll() {
+        return employeeRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public Employee findById(Long id) {
-        return employeeRepository.findById(id).orElse(null);
-    }
-
-    public Employee update(Long id, Employee updatedEmployee) {
+    public EmployeeResponse findById(Long id) {
         return employeeRepository.findById(id)
-                .map(existingEmployee -> {
-                    existingEmployee.setFirstName(updatedEmployee.getFirstName());
-                    existingEmployee.setLastName(updatedEmployee.getLastName());
-                    existingEmployee.setEmail(updatedEmployee.getEmail());
-                    existingEmployee.setDepartment(updatedEmployee.getDepartment());
+                .map(this::toResponse)
+                .orElse(null);
+    }
 
-                    return employeeRepository.save(existingEmployee);
+    public EmployeeResponse update(Long id, EmployeeRequest request) {
+        return employeeRepository.findById(id)
+                .map(existing -> {
+                    existing.setFirstName(request.getFirstName());
+                    existing.setLastName(request.getLastName());
+                    existing.setEmail(request.getEmail());
+                    existing.setDepartment(request.getDepartment());
+                    return toResponse(employeeRepository.save(existing));
                 })
                 .orElse(null);
     }
@@ -47,8 +50,26 @@ public class EmployeeService {
         if (!employeeRepository.existsById(id)) {
             return false;
         }
-
         employeeRepository.deleteById(id);
         return true;
+    }
+
+    private Employee toEntity(EmployeeRequest request) {
+        Employee e = new Employee();
+        e.setFirstName(request.getFirstName());
+        e.setLastName(request.getLastName());
+        e.setEmail(request.getEmail());
+        e.setDepartment(request.getDepartment());
+        return e;
+    }
+
+    private EmployeeResponse toResponse(Employee e) {
+        return new EmployeeResponse(
+                e.getId(),
+                e.getFirstName(),
+                e.getLastName(),
+                e.getEmail(),
+                e.getDepartment()
+        );
     }
 }

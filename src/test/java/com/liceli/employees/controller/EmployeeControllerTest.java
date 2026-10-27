@@ -1,7 +1,8 @@
 
 package com.liceli.employees.controller;
 
-import com.liceli.employees.model.Employee;
+import com.liceli.employees.dto.EmployeeRequest;
+import com.liceli.employees.dto.EmployeeResponse;
 import com.liceli.employees.service.EmployeeService;
 
 import tools.jackson.databind.ObjectMapper;
@@ -35,27 +36,26 @@ class EmployeeControllerTest {
 
     @Test
     void createShouldReturn201() throws Exception {
-        Employee employee = new Employee();
-        employee.setId(1L);
-        employee.setFirstName("Amina");
-        employee.setLastName("Kabore");
-        employee.setEmail("amina.kabore@example.com");
-        employee.setDepartment("Informatique");
+        EmployeeRequest request = new EmployeeRequest();
+        request.setFirstName("Amina");
+        request.setLastName("Kabore");
+        request.setEmail("amina.kabore@example.com");
+        request.setDepartment("Informatique");
 
-        when(employeeService.create(any(Employee.class)))
-                .thenReturn(employee);
+        EmployeeResponse response = new EmployeeResponse(
+                1L, "Amina", "Kabore", "amina.kabore@example.com", "Informatique");
+
+        when(employeeService.create(any(EmployeeRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/employees")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(employee)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1));
     }
 
     @Test
-    void findByIdShouldReturn404WhenEmployeeDoesNotExist()
-            throws Exception {
-
+    void findByIdShouldReturn404WhenEmployeeDoesNotExist() throws Exception {
         when(employeeService.findById(999L)).thenReturn(null);
 
         mockMvc.perform(get("/api/employees/999"))
@@ -64,33 +64,34 @@ class EmployeeControllerTest {
 
     @Test
     void createShouldReturn400WhenEmailIsInvalid() throws Exception {
-        Employee employee = new Employee();
-        employee.setFirstName("Amina");
-        employee.setLastName("Kabore");
-        employee.setEmail("adresse-invalide");
-        employee.setDepartment("Informatique");
+        EmployeeRequest request = new EmployeeRequest();
+        request.setFirstName("Amina");
+        request.setLastName("Kabore");
+        request.setEmail("adresse-invalide");
+        request.setDepartment("Informatique");
 
         mockMvc.perform(post("/api/employees")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(employee)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void updateShouldReturn200WhenEmployeeExists() throws Exception {
-        Employee updatedEmployee = new Employee();
-        updatedEmployee.setId(1L);
-        updatedEmployee.setFirstName("Ramel");
-        updatedEmployee.setLastName("Makosso");
-        updatedEmployee.setEmail("ramel@example.com");
-        updatedEmployee.setDepartment("Informatique");
+        EmployeeRequest request = new EmployeeRequest();
+        request.setFirstName("Ramel");
+        request.setLastName("Makosso");
+        request.setEmail("ramel@example.com");
+        request.setDepartment("Informatique");
 
-        when(employeeService.update(eq(1L), any(Employee.class)))
-                .thenReturn(updatedEmployee);
+        EmployeeResponse response = new EmployeeResponse(
+                1L, "Ramel", "Makosso", "ramel@example.com", "Informatique");
+
+        when(employeeService.update(eq(1L), any(EmployeeRequest.class))).thenReturn(response);
 
         mockMvc.perform(put("/api/employees/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updatedEmployee)))
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.department").value("Informatique"));

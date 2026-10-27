@@ -1,6 +1,8 @@
 
 package com.liceli.employees.service;
 
+import com.liceli.employees.dto.EmployeeRequest;
+import com.liceli.employees.dto.EmployeeResponse;
 import com.liceli.employees.model.Employee;
 import com.liceli.employees.repository.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,28 +31,30 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void createShouldSaveEmployee() {
-        Employee employee = new Employee();
-        employee.setFirstName("Ramel");
-        employee.setLastName("Makosso");
+    void createShouldReturnResponse() {
+        EmployeeRequest request = new EmployeeRequest();
+        request.setFirstName("Ramel");
+        request.setLastName("Makosso");
+        request.setEmail("ramel@example.com");
+        request.setDepartment("Informatique");
 
-        when(employeeRepository.save(employee)).thenReturn(employee);
+        Employee saved = new Employee(1L, "Ramel", "Makosso", "ramel@example.com", "Informatique");
+        when(employeeRepository.save(any(Employee.class))).thenReturn(saved);
 
-        Employee result = employeeService.create(employee);
+        EmployeeResponse result = employeeService.create(request);
 
         assertNotNull(result);
-        verify(employeeRepository).save(employee);
+        assertEquals(1L, result.getId());
+        assertEquals("Ramel", result.getFirstName());
+        verify(employeeRepository).save(any(Employee.class));
     }
 
     @Test
-    void findByIdShouldReturnEmployeeWhenFound() {
-        Employee employee = new Employee();
-        employee.setId(1L);
+    void findByIdShouldReturnResponseWhenFound() {
+        Employee employee = new Employee(1L, "Ramel", "Makosso", "ramel@example.com", "Informatique");
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
-        when(employeeRepository.findById(1L))
-                .thenReturn(Optional.of(employee));
-
-        Employee result = employeeService.findById(1L);
+        EmployeeResponse result = employeeService.findById(1L);
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
