@@ -36,21 +36,18 @@ services:
     ports:
       - "8080:8080"
 
-<<<<<<< HEAD
   # ── phpMyAdmin (outil d'administration — décommenter si nécessaire) ──────
-  # phpmyadmin:
-  #   image: phpmyadmin:5.2
-  #   restart: unless-stopped
-  #   depends_on:
-  #     - db
-  #   environment:
-  #     PMA_HOST: db
-  #     PMA_PORT: 3306
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-  #   ports:
-  #     - "8081:80"
-
-=======
->>>>>>> f990ef5 (chore: ajout de la configuration Docker)
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8081:80"
+      
 volumes:
   mysql_data:
