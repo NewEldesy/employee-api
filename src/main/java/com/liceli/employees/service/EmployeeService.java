@@ -7,7 +7,8 @@ import com.liceli.employees.model.Employee;
 import com.liceli.employees.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class EmployeeService {
@@ -23,10 +24,9 @@ public class EmployeeService {
         return toResponse(employeeRepository.save(employee));
     }
 
-    public List<EmployeeResponse> findAll() {
-        return employeeRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+    public Page<EmployeeResponse> findAll(Pageable pageable) {
+        return employeeRepository.findAll(pageable)
+                .map(this::toResponse);
     }
 
     public EmployeeResponse findById(Long id) {

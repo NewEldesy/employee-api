@@ -19,6 +19,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -98,8 +101,8 @@ class EmployeeSecurityTest {
     @Test
     @WithMockUser(username = "testuser", roles = "USER")
     void userRoleCanReadEmployees() throws Exception {
-        when(employeeService.findAll())
-                .thenReturn(java.util.Collections.emptyList());
+        when(employeeService.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(java.util.Collections.emptyList()));
 
         mockMvc.perform(get("/api/employees"))
                 .andExpect(status().isOk());

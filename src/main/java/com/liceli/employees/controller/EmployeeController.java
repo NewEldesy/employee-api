@@ -7,6 +7,7 @@ import com.liceli.employees.service.EmployeeService;
 
 import com.liceli.employees.exception.GlobalExceptionHandler.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,11 +15,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 import jakarta.validation.Valid;
 
@@ -94,39 +97,29 @@ public class EmployeeController {
     )
     @ApiResponse(
         responseCode = "200",
-        description = "Liste des employés récupérée avec succès",
+        description = "Page d'employés récupérée avec succès",
         content = @Content(
             mediaType = "application/json",
-            schema = @Schema(
-                implementation = EmployeeResponse.class,
-                type = "array"
-            ),
             examples = @ExampleObject(
-                name = "Liste des employés",
+                name = "Page d'employés",
                 value = """
-                    [
                     {
-                        "id": 1,
-                        "firstName": "Amina",
-                        "lastName": "Kabore",
-                        "email": "amina.kabore@example.com",
-                        "department": "Ressources Humaines"
-                    },
-                    {
-                        "id": 2,
-                        "firstName": "Paul",
-                        "lastName": "Traore",
-                        "email": "paul.traore@example.com",
-                        "department": "Informatique"
+                      "content": [
+                        {"id": 1, "firstName": "Amina", "lastName": "Kabore",
+                         "email": "amina.kabore@example.com", "department": "Ressources Humaines"},
+                        {"id": 2, "firstName": "Paul", "lastName": "Traore",
+                         "email": "paul.traore@example.com", "department": "Informatique"}
+                      ],
+                      "page": {"size": 20, "number": 0, "totalElements": 2, "totalPages": 1}
                     }
-                    ]
                     """
             )
         )
     )
     @GetMapping
-    public List<EmployeeResponse> findAll() {
-        return employeeService.findAll();
+    public Page<EmployeeResponse> findAll(
+            @ParameterObject @PageableDefault(size = 20, sort = "lastName") Pageable pageable) {
+        return employeeService.findAll(pageable);
     }
 
     @Operation(
