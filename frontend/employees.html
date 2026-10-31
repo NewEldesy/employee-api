@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee API — Employés</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <span class="navbar-brand">Employee API</span>
+    <div class="navbar-user">
+      <span id="nav-username"></span>
+      <button class="btn btn-ghost" id="logout-btn">Déconnexion</button>
+    </div>
+  </nav>
+
+  <!-- Page -->
+  <main class="page">
+    <div class="page-header">
+      <h2>Employés</h2>
+      <button class="btn btn-primary" id="new-btn">+ Nouvel employé</button>
+    </div>
+
+    <div id="page-alert" class="alert hidden"></div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Département</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="6"><div class="empty-state">Chargement…</div></td></tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span id="pagination-info"></span>
+        <div class="pagination-controls">
+          <button class="btn btn-ghost" id="prev-btn">← Précédent</button>
+          <button class="btn btn-ghost" id="next-btn">Suivant →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal création / édition -->
+  <div class="modal-overlay hidden" id="modal-overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h3 id="modal-title">Nouvel employé</h3>
+        <button class="modal-close" id="modal-close-btn" aria-label="Fermer">×</button>
+      </div>
+
+      <div id="modal-alert" class="alert alert-error hidden"></div>
+
+      <form id="employee-form" novalidate>
+        <input type="hidden" id="employee-id">
+        <div class="form-group">
+          <label for="firstName">Prénom</label>
+          <input type="text" id="firstName" name="firstName" required>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Nom</label>
+          <input type="text" id="lastName" name="lastName" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="department">Département</label>
+          <input type="text" id="department" name="department" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="modal-cancel-btn">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="modal-submit-btn">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal confirmation suppression -->
+  <div class="modal-overlay hidden" id="confirm-overlay">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3>Confirmer la suppression</h3>
+        <button class="modal-close" id="confirm-close-btn" aria-label="Fermer">×</button>
+      </div>
+      <p id="confirm-message" style="color:var(--text-muted);font-size:.9rem;"></p>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="confirm-cancel-btn">Annuler</button>
+        <button class="btn btn-danger" id="confirm-ok-btn">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // ── Auth guard ──────────────────────────────────────────────────────────
+    const token = sessionStorage.getItem('jwt_token');
+    if (!token) window.location.replace('index.html');
+
+    document.getElementById('nav-username').textContent =
+      sessionStorage.getItem('jwt_user') || '';
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      sessionStorage.clear();
+      window.location.replace('index.html');
+    });
+
+    // ── State ───────────────────────────────────────────────────────────────
+    let currentPage = 0;
+    let totalPages  = 1;
+    let deleteTarget = null;
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const tbody = $('table-body');
+
+    function showPageAlert(msg, type = 'error') {
+      const el = $('page-alert');
+      el.textContent = msg;
+      el.className = `alert alert-${type}`;
+    }
+
+    function hidePageAlert() {
+      $('page-alert').className = 'alert hidden';
+    }
+
+    function showModalAlert(msgs) {
+      const el = $('modal-alert');
+      el.innerHTML = Array.isArray(msgs) ? msgs.join('<br>') : msgs;
+      el.classList.remove('hidden');
+    }
+
+    function handleApiError(err) {
+      if (err.status === 401) {
+        sessionStorage.clear();
+        window.location.replace('index.html');
+      }
+      return err.message || 'Une erreur est survenue.';
+    }
+
+    // ── Table ────────────────────────────────────────────────────────────────
+    async function loadEmployees(page = 0) {
+      hidePageAlert();
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Chargement…</div></td></tr>';
+      try {
+        const data = await Api.getEmployees(page, 10);
+        currentPage = data.page.number;
+        totalPages  = data.page.totalPages;
+        renderTable(data.content, data.page);
+      } catch (err) {
+        showPageAlert(handleApiError(err));
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Impossible de charger les données.</div></td></tr>';
+      }
+    }
+
+    function renderTable(employees, page) {
+      if (!employees.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Aucun employé trouvé.</div></td></tr>';
+      } else {
+        tbody.innerHTML = employees.map(emp => `
+          <tr>
+            <td>${escHtml(String(emp.id))}</td>
+            <td>${escHtml(emp.firstName)}</td>
+            <td>${escHtml(emp.lastName)}</td>
+            <td>${escHtml(emp.email)}</td>
+            <td>${escHtml(emp.department)}</td>
+            <td class="actions">
+              <button class="btn btn-ghost"
+                data-action="edit"
+                data-id="${escHtml(String(emp.id))}">Modifier</button>
+              <button class="btn btn-danger"
+                data-action="delete"
+                data-id="${escHtml(String(emp.id))}"
+                data-name="${escHtml(emp.firstName + ' ' + emp.lastName)}">Supprimer</button>
+            </td>
+          </tr>`).join('');
+      }
+
+      const start = page.number * page.size + 1;
+      const end   = Math.min(start + employees.length - 1, page.totalElements);
+      $('pagination-info').textContent =
+        page.totalElements ? `${start}–${end} sur ${page.totalElements}` : '';
+      $('prev-btn').disabled = page.number === 0;
+      $('next-btn').disabled = page.number >= page.totalPages - 1;
+    }
+
+    // Event delegation pour les boutons du tableau
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const id   = btn.dataset.id;
+      const name = btn.dataset.name;
+      if (btn.dataset.action === 'edit')   openEdit(id);
+      if (btn.dataset.action === 'delete') openConfirmDelete(id, name);
+    });
+
+    $('prev-btn').addEventListener('click', () => loadEmployees(currentPage - 1));
+    $('next-btn').addEventListener('click', () => loadEmployees(currentPage + 1));
+
+    // ── Modal helpers ─────────────────────────────────────────────────────────
+    function openModal(title) {
+      $('modal-title').textContent = title;
+      $('modal-alert').classList.add('hidden');
+      $('modal-overlay').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      $('modal-overlay').classList.add('hidden');
+      $('employee-form').reset();
+      $('employee-id').value = '';
+    }
+
+    $('modal-close-btn').addEventListener('click', closeModal);
+    $('modal-cancel-btn').addEventListener('click', closeModal);
+    $('modal-overlay').addEventListener('click', e => { if (e.target === $('modal-overlay')) closeModal(); });
+
+    // ── Create ────────────────────────────────────────────────────────────────
+    $('new-btn').addEventListener('click', () => {
+      $('employee-id').value = '';
+      openModal('Nouvel employé');
+    });
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+    async function openEdit(id) {
+      try {
+        const emp = await Api.getEmployee(id);
+        $('employee-id').value   = emp.id;
+        $('firstName').value     = emp.firstName;
+        $('lastName').value      = emp.lastName;
+        $('email').value         = emp.email;
+        $('department').value    = emp.department;
+        openModal('Modifier l\'employé');
+      } catch (err) {
+        showPageAlert(handleApiError(err));
+      }
+    }
+
+    // ── Form submit ───────────────────────────────────────────────────────────
+    $('employee-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('modal-alert').classList.add('hidden');
+
+      const id         = $('employee-id').value;
+      const firstName  = $('firstName').value.trim();
+      const lastName   = $('lastName').value.trim();
+      const email      = $('email').value.trim();
+      const department = $('department').value.trim();
+
+      if (!firstName || !lastName || !email || !department) {
+        showModalAlert('Tous les champs sont obligatoires.');
+        return;
+      }
+
+      const btn = $('modal-submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Enregistrement…';
+
+      try {
+        if (id) {
+          await Api.updateEmployee(id, { firstName, lastName, email, department });
+        } else {
+          await Api.createEmployee({ firstName, lastName, email, department });
+        }
+        closeModal();
+        showPageAlert('Employé enregistré avec succès.', 'success');
+        loadEmployees(currentPage);
+      } catch (err) {
+        if (err.status === 400 && Array.isArray(err.data)) {
+          showModalAlert(err.data);
+        } else {
+          showModalAlert(handleApiError(err));
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enregistrer';
+      }
+    });
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    function openConfirmDelete(id, name) {
+      deleteTarget = id;
+      $('confirm-message').textContent = `Supprimer ${name} ? Cette action est irréversible.`;
+      $('confirm-overlay').classList.remove('hidden');
+    }
+
+    function closeConfirm() {
+      $('confirm-overlay').classList.add('hidden');
+      deleteTarget = null;
+    }
+
+    $('confirm-close-btn').addEventListener('click', closeConfirm);
+    $('confirm-cancel-btn').addEventListener('click', closeConfirm);
+    $('confirm-overlay').addEventListener('click', e => { if (e.target === $('confirm-overlay')) closeConfirm(); });
+
+    $('confirm-ok-btn').addEventListener('click', async () => {
+      if (!deleteTarget) return;
+      const id = deleteTarget;
+      closeConfirm();
+      try {
+        await Api.deleteEmployee(id);
+        showPageAlert('Employé supprimé.', 'success');
+        loadEmployees(currentPage);
+      } catch (err) {
+        showPageAlert(handleApiError(err));
+      }
+    });
+
+    // ── Escape helpers ────────────────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    loadEmployees(0);
+  </script>
+</body>
+</html>

@@ -36,6 +36,17 @@ services:
     ports:
       - "8989:8080"
 
+  frontend:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
+
   # ── phpMyAdmin (outil d'administration — décommenter si nécessaire) ──────
   phpmyadmin:
     image: phpmyadmin:5.2
