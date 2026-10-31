@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee API — Connexion</title>
+  <title>Employee API | Connexion</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -35,6 +35,14 @@
     // Redirect si déjà connecté
     if (sessionStorage.getItem('jwt_token')) {
       window.location.replace('employees.html');
+    }
+
+    // Message session expirée
+    if (sessionStorage.getItem('session_expired')) {
+      sessionStorage.removeItem('session_expired');
+      const a = document.getElementById('alert');
+      a.textContent = 'Votre session a expiré. Veuillez vous reconnecter.';
+      a.classList.remove('hidden');
     }
 
     const form = document.getElementById('login-form');

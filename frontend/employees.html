@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee API — Employés</title>
+  <title>Employee API | Employés</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -45,14 +45,14 @@
       <div class="pagination">
         <span id="pagination-info"></span>
         <div class="pagination-controls">
-          <button class="btn btn-ghost" id="prev-btn">← Précédent</button>
-          <button class="btn btn-ghost" id="next-btn">Suivant →</button>
+          <button class="btn btn-ghost" id="prev-btn">Précédent</button>
+          <button class="btn btn-ghost" id="next-btn">Suivant </button>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Modal création / édition -->
+  <!-- Modal création / Modification -->
   <div class="modal-overlay hidden" id="modal-overlay">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-header">
@@ -105,7 +105,7 @@
 
   <script src="app.js"></script>
   <script>
-    // ── Auth guard ──────────────────────────────────────────────────────────
+    // Authentification
     const token = sessionStorage.getItem('jwt_token');
     if (!token) window.location.replace('index.html');
 
@@ -117,12 +117,12 @@
       window.location.replace('index.html');
     });
 
-    // ── State ───────────────────────────────────────────────────────────────
+    // Etat de la pagination et suppression
     let currentPage = 0;
     let totalPages  = 1;
     let deleteTarget = null;
 
-    // ── Helpers ─────────────────────────────────────────────────────────────
+    // Sélection d'élément par ID
     const $ = id => document.getElementById(id);
     const tbody = $('table-body');
 
@@ -145,20 +145,24 @@
     function handleApiError(err) {
       if (err.status === 401) {
         sessionStorage.clear();
+        sessionStorage.setItem('session_expired', '1');
         window.location.replace('index.html');
+        return;
+      }
+      if (err.status === 403) {
+        return 'Action non autorisée : votre compte ne dispose pas des droits nécessaires.';
       }
       return err.message || 'Une erreur est survenue.';
     }
 
-    // ── Table ────────────────────────────────────────────────────────────────
     async function loadEmployees(page = 0) {
       hidePageAlert();
       tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Chargement…</div></td></tr>';
       try {
         const data = await Api.getEmployees(page, 10);
-        currentPage = data.page.number;
-        totalPages  = data.page.totalPages;
-        renderTable(data.content, data.page);
+        currentPage = data.number;
+        totalPages  = data.totalPages;
+        renderTable(data.content, data);
       } catch (err) {
         showPageAlert(handleApiError(err));
         tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Impossible de charger les données.</div></td></tr>';
@@ -196,7 +200,6 @@
       $('next-btn').disabled = page.number >= page.totalPages - 1;
     }
 
-    // Event delegation pour les boutons du tableau
     tbody.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
@@ -209,7 +212,6 @@
     $('prev-btn').addEventListener('click', () => loadEmployees(currentPage - 1));
     $('next-btn').addEventListener('click', () => loadEmployees(currentPage + 1));
 
-    // ── Modal helpers ─────────────────────────────────────────────────────────
     function openModal(title) {
       $('modal-title').textContent = title;
       $('modal-alert').classList.add('hidden');
@@ -226,13 +228,13 @@
     $('modal-cancel-btn').addEventListener('click', closeModal);
     $('modal-overlay').addEventListener('click', e => { if (e.target === $('modal-overlay')) closeModal(); });
 
-    // ── Create ────────────────────────────────────────────────────────────────
+    // Création d'un nouvel employé
     $('new-btn').addEventListener('click', () => {
       $('employee-id').value = '';
       openModal('Nouvel employé');
     });
 
-    // ── Edit ──────────────────────────────────────────────────────────────────
+    // Modification d'un employé existant
     async function openEdit(id) {
       try {
         const emp = await Api.getEmployee(id);
@@ -247,7 +249,7 @@
       }
     }
 
-    // ── Form submit ───────────────────────────────────────────────────────────
+    // Soumission du formulaire de création / Modification
     $('employee-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       $('modal-alert').classList.add('hidden');
@@ -288,7 +290,7 @@
       }
     });
 
-    // ── Delete ────────────────────────────────────────────────────────────────
+    // Suppression d'un employé
     function openConfirmDelete(id, name) {
       deleteTarget = id;
       $('confirm-message').textContent = `Supprimer ${name} ? Cette action est irréversible.`;
@@ -317,7 +319,6 @@
       }
     });
 
-    // ── Escape helpers ────────────────────────────────────────────────────────
     function escHtml(str) {
       return String(str)
         .replace(/&/g, '&amp;')
@@ -327,7 +328,7 @@
         .replace(/'/g, '&#39;');
     }
 
-    // ── Init ──────────────────────────────────────────────────────────────────
+    // Initialisation
     loadEmployees(0);
   </script>
 </body>

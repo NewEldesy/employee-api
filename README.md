@@ -1,6 +1,6 @@
 # Employee Management API
 
-API REST de gestion des employés, développée avec **Spring Boot 4** et sécurisée par **JWT**. Ce projet est conçu comme portfolio technique — il illustre une architecture Spring Boot moderne, un pipeline Docker complet et une documentation OpenAPI interactive.
+API REST de gestion des employés, développée avec **Spring Boot 4** et sécurisée par **JWT**. Ce projet est conçu comme portfolio technique ,il illustre une architecture Spring Boot moderne, un pipeline Docker complet et une documentation OpenAPI interactive.
 
 > **Interface web :** une interface d'aperçu minimale est en cours de développement et sera accessible directement depuis le navigateur.
 
@@ -44,7 +44,7 @@ Variables requises dans `.env` :
 |`DB_USERNAME`                 | Utilisateur MySQL de l'application                         |
 |`DB_PASSWORD`                 | Mot de passe de cet utilisateur                            |
 |`MYSQL_ROOT_PASSWORD`         | Mot de passe root MySQL                                    |
-|`JWT_SECRET`                  | Secret JWT — **minimum 32 caractères**                     |
+|`JWT_SECRET`                  | Secret JWT **minimum 32 caractères**                     |
 |`JWT_EXPIRATION_MS`           | Durée de validité du token en ms(défaut: `86400000` = 24h) |
 |`APP_BOOTSTRAP_ENABLED`       | `true` pour créer les comptes de démo au premier démarrage |
 |`APP_BOOTSTRAP_ADMIN_PASSWORD`| Mot de passe du compte `admin` (si bootstrap activé)       |
@@ -77,7 +77,7 @@ Les services démarrent dans l'ordre : MySQL → Application.
 
 | Méthode | Endpoint          | Description          | Auth |
 |---------|-------------------|----------------------|------|
-| `POST`  | `/api/auth/login` | Obtenir un token JWT | —    |
+| `POST`  | `/api/auth/login` | Obtenir un token JWT | /    |
 
 ### Employés
 
@@ -98,13 +98,13 @@ Authorization: Bearer <token>
 
 | Méthode | Endpoint | Description | Auth |
 |---|---|---|---|
-| `GET` | `/api/health` | État de l'application | — |
+| `GET` | `/api/health` | État de l'application | / |
 
 ---
 
 ## Exemple d'utilisation
 
-### 1 — Obtenir un token
+### 1. Obtenir un token
 
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
@@ -117,7 +117,7 @@ Réponse :
 { "token": "eyJhbGciOiJIUzI1NiJ9..." }
 ```
 
-### 2 — Appeler un endpoint protégé
+### 2. Appeler un endpoint protégé
 
 ```bash
 curl http://localhost:8080/api/employees \
@@ -181,4 +181,4 @@ src/
 
 ## Licence
 
-Projet portfolio — libre de réutilisation à des fins éducatives.
+Projet portfolio : libre de réutilisation à des fins éducatives.

@@ -1,4 +1,4 @@
-# ── Étape 1 : build ──────────────────────────────────────────
+# Étape 1 : build
 FROM eclipse-temurin:25-jdk AS build
 
 WORKDIR /app
@@ -8,11 +8,11 @@ COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 RUN ./mvnw dependency:go-offline -q
 
-# Compiler et packager (sans tests — ils tournent en CI)
+# Compiler et packager (sans tests ,ils tournent en CI)
 COPY src/ src/
 RUN ./mvnw package -DskipTests -q
 
-# ── Étape 2 : image finale légère ───────────────────────────
+# Étape 2 : image finale légère
 FROM eclipse-temurin:25-jre
 
 WORKDIR /app

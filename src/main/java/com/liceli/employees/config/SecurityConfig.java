@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -46,6 +47,13 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtAuthFilter> jwtFilterRegistration(JwtAuthFilter filter) {
+        FilterRegistrationBean<JwtAuthFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -103,8 +111,16 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
-                    .authenticationEntryPoint((req, res, e) ->
-                            res.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
+                    .authenticationEntryPoint((req, res, e) -> {
+                        res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        res.setContentType("application/json;charset=UTF-8");
+                        res.getWriter().write("{\"message\":\"Authentification requise.\"}");
+                    })
+                    .accessDeniedHandler((req, res, e) -> {
+                        res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        res.setContentType("application/json;charset=UTF-8");
+                        res.getWriter().write("{\"message\":\"Accès refusé : droits insuffisants.\"}");
+                    }))
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

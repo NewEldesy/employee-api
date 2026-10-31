@@ -47,7 +47,7 @@ services:
     depends_on:
       - app
 
-  # ── phpMyAdmin (outil d'administration — décommenter si nécessaire) ──────
+  # phpMyAdmin (outil d'administration à décommenter si nécessaire)
   phpmyadmin:
     image: phpmyadmin:5.2
     restart: unless-stopped
