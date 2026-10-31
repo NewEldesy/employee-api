@@ -2,21 +2,21 @@
 
 API REST de gestion des employés, développée avec **Spring Boot 4** et sécurisée par **JWT**. Ce projet est conçu comme portfolio technique — il illustre une architecture Spring Boot moderne, un pipeline Docker complet et une documentation OpenAPI interactive.
 
-> **Interface web** — une interface d'aperçu minimale est en cours de développement et sera accessible directement depuis le navigateur.
+> **Interface web :** une interface d'aperçu minimale est en cours de développement et sera accessible directement depuis le navigateur.
 
 ---
 
 ## Stack technique
 
-| Couche | Technologie |
-|---|---|
-| Runtime | Java 25 |
-| Framework | Spring Boot 4.0.8 (Spring Framework 7) |
-| Sécurité | Spring Security 7 · JWT (jjwt 0.12) |
-| Persistance | Spring Data JPA · Hibernate · MySQL 8.4 |
-| Migrations | Flyway |
-| Documentation | SpringDoc OpenAPI 3 (Swagger UI) |
-| Conteneurisation | Docker · Docker Compose |
+| Couche           | Technologie                             |
+|------------------|-----------------------------------------|
+| Runtime          | Java 25                                 |
+| Framework        | Spring Boot 4.0.8 (Spring Framework 7)  |
+| Sécurité         | Spring Security 7 · JWT (jjwt 0.12)     |
+| Persistance      | Spring Data JPA · Hibernate · MySQL 8.4 |
+| Migrations       | Flyway                                  |
+| Documentation    | SpringDoc OpenAPI 3 (Swagger UI)        |
+| Conteneurisation | Docker · Docker Compose                 |
 
 ---
 
@@ -39,16 +39,16 @@ cp .env.example .env
 
 Variables requises dans `.env` :
 
-| Variable | Description |
-|---|---|
-| `DB_USERNAME` | Utilisateur MySQL de l'application |
-| `DB_PASSWORD` | Mot de passe de cet utilisateur |
-| `MYSQL_ROOT_PASSWORD` | Mot de passe root MySQL |
-| `JWT_SECRET` | Secret JWT — **minimum 32 caractères** |
-| `JWT_EXPIRATION_MS` | Durée de validité du token en ms (défaut : `86400000` = 24 h) |
-| `APP_BOOTSTRAP_ENABLED` | `true` pour créer les comptes de démo au premier démarrage |
-| `APP_BOOTSTRAP_ADMIN_PASSWORD` | Mot de passe du compte `admin` (si bootstrap activé) |
-| `APP_BOOTSTRAP_USER_PASSWORD` | Mot de passe du compte `user` (si bootstrap activé) |
+| Variable                     | Description                                                |
+|------------------------------|------------------------------------------------------------|
+|`DB_USERNAME`                 | Utilisateur MySQL de l'application                         |
+|`DB_PASSWORD`                 | Mot de passe de cet utilisateur                            |
+|`MYSQL_ROOT_PASSWORD`         | Mot de passe root MySQL                                    |
+|`JWT_SECRET`                  | Secret JWT — **minimum 32 caractères**                     |
+|`JWT_EXPIRATION_MS`           | Durée de validité du token en ms(défaut: `86400000` = 24h) |
+|`APP_BOOTSTRAP_ENABLED`       | `true` pour créer les comptes de démo au premier démarrage |
+|`APP_BOOTSTRAP_ADMIN_PASSWORD`| Mot de passe du compte `admin` (si bootstrap activé)       |
+|`APP_BOOTSTRAP_USER_PASSWORD` | Mot de passe du compte `user` (si bootstrap activé)        |
 
 > **Générer un secret JWT** sous PowerShell :
 > ```powershell
@@ -63,10 +63,10 @@ docker compose up --build
 
 Les services démarrent dans l'ordre : MySQL → Application.
 
-| Service | URL |
-|---|---|
-| API | http://localhost:8080 |
-| Swagger UI | http://localhost:8080/swagger-ui.html |
+| Service    | URL                                                       |
+|------------|-----------------------------------------------------------|
+| API        | http://localhost:8080                                     |
+| Swagger UI | http://localhost:8080/swagger-ui.html                     |
 | phpMyAdmin | http://localhost:8081 *(décommenter dans `compose.yaml`)* |
 
 ---
@@ -75,9 +75,9 @@ Les services démarrent dans l'ordre : MySQL → Application.
 
 ### Authentification
 
-| Méthode | Endpoint | Description | Auth |
-|---|---|---|---|
-| `POST` | `/api/auth/login` | Obtenir un token JWT | — |
+| Méthode | Endpoint          | Description          | Auth |
+|---------|-------------------|----------------------|------|
+| `POST`  | `/api/auth/login` | Obtenir un token JWT | —    |
 
 ### Employés
 
