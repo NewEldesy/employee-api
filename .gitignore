@@ -47,3 +47,7 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+## Autres fichiers à ignorer
+*.swp
+CLAUDE.md

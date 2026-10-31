@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "3306:3306"
+      - "3307:3306"
 
   app:
     build: .
@@ -34,7 +34,31 @@ services:
       APP_BOOTSTRAP_USER_PASSWORD: ${APP_BOOTSTRAP_USER_PASSWORD:-}
       APP_BOOTSTRAP_ADMIN_PASSWORD: ${APP_BOOTSTRAP_ADMIN_PASSWORD:-}
     ports:
-      - "8080:8080"
+      - "8989:8080"
+
+  frontend:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
+
+  # phpMyAdmin (outil d'administration à décommenter si nécessaire)
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8081:80"
 
   # ── phpMyAdmin (outil d'administration — décommenter si nécessaire) ──────
   phpmyadmin:

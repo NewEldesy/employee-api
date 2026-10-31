@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee API | Connexion</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <h1>Employee API</h1>
+      <p class="subtitle">Connectez-vous pour accéder à l'interface.</p>
+
+      <div id="alert" class="alert alert-error hidden"></div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="username">Nom d'utilisateur</label>
+          <input type="text" id="username" name="username" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-full">
+          Se connecter
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Redirect si déjà connecté
+    if (sessionStorage.getItem('jwt_token')) {
+      window.location.replace('employees.html');
+    }
+
+    // Message session expirée
+    if (sessionStorage.getItem('session_expired')) {
+      sessionStorage.removeItem('session_expired');
+      const a = document.getElementById('alert');
+      a.textContent = 'Votre session a expiré. Veuillez vous reconnecter.';
+      a.classList.remove('hidden');
+    }
+
+    const form = document.getElementById('login-form');
+    const alert = document.getElementById('alert');
+    const btn = document.getElementById('submit-btn');
+
+    function showError(msg) {
+      alert.textContent = msg;
+      alert.classList.remove('hidden');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      alert.classList.add('hidden');
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        showError('Veuillez remplir tous les champs.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Connexion…';
+
+      try {
+        const token = await Api.login(username, password);
+        sessionStorage.setItem('jwt_token', token);
+        sessionStorage.setItem('jwt_user', username);
+        window.location.replace('employees.html');
+      } catch (err) {
+        showError(err.message || 'Erreur de connexion.');
+        btn.disabled = false;
+        btn.textContent = 'Se connecter';
+      }
+    });
+  </script>
+</body>
+</html>
