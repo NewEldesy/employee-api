@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "3307:3307"
+      - "3307:3306"
 
   app:
     build: .
@@ -34,7 +34,7 @@ services:
       APP_BOOTSTRAP_USER_PASSWORD: ${APP_BOOTSTRAP_USER_PASSWORD:-}
       APP_BOOTSTRAP_ADMIN_PASSWORD: ${APP_BOOTSTRAP_ADMIN_PASSWORD:-}
     ports:
-      - "8989:8989"
+      - "8989:8080"
 
   # ── phpMyAdmin (outil d'administration — décommenter si nécessaire) ──────
   phpmyadmin:
@@ -44,7 +44,7 @@ services:
       - db
     environment:
       PMA_HOST: db
-      PMA_PORT: 3307
+      PMA_PORT: 3306
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
       - "8081:80"
