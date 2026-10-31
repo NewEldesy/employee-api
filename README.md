@@ -1,8 +1,6 @@
 # Employee Management API
 
-API REST de gestion des employés, développée avec **Spring Boot 4** et sécurisée par **JWT**. Ce projet est conçu comme portfolio technique ,il illustre une architecture Spring Boot moderne, un pipeline Docker complet et une documentation OpenAPI interactive.
-
-> **Interface web :** une interface d'aperçu minimale est en cours de développement et sera accessible directement depuis le navigateur.
+API REST de gestion des employés, développée avec **Spring Boot 4** et sécurisée par **JWT**. Ce projet est conçu comme portfolio technique ; il illustre une architecture Spring Boot moderne, un pipeline Docker complet, une interface web intégrée et une documentation OpenAPI interactive.
 
 ---
 
@@ -17,6 +15,7 @@ API REST de gestion des employés, développée avec **Spring Boot 4** et sécur
 | Migrations       | Flyway                                  |
 | Documentation    | SpringDoc OpenAPI 3 (Swagger UI)        |
 | Conteneurisation | Docker · Docker Compose                 |
+| Interface web    | HTML / CSS / JS vanilla · Nginx         |
 
 ---
 
@@ -41,14 +40,14 @@ Variables requises dans `.env` :
 
 | Variable                     | Description                                                |
 |------------------------------|------------------------------------------------------------|
-|`DB_USERNAME`                 | Utilisateur MySQL de l'application                         |
-|`DB_PASSWORD`                 | Mot de passe de cet utilisateur                            |
-|`MYSQL_ROOT_PASSWORD`         | Mot de passe root MySQL                                    |
-|`JWT_SECRET`                  | Secret JWT **minimum 32 caractères**                     |
-|`JWT_EXPIRATION_MS`           | Durée de validité du token en ms(défaut: `86400000` = 24h) |
-|`APP_BOOTSTRAP_ENABLED`       | `true` pour créer les comptes de démo au premier démarrage |
-|`APP_BOOTSTRAP_ADMIN_PASSWORD`| Mot de passe du compte `admin` (si bootstrap activé)       |
-|`APP_BOOTSTRAP_USER_PASSWORD` | Mot de passe du compte `user` (si bootstrap activé)        |
+| `DB_USERNAME`                | Utilisateur MySQL de l'application                         |
+| `DB_PASSWORD`                | Mot de passe de cet utilisateur                            |
+| `MYSQL_ROOT_PASSWORD`        | Mot de passe root MySQL                                    |
+| `JWT_SECRET`                 | Secret JWT **minimum 32 caractères**                       |
+| `JWT_EXPIRATION_MS`          | Durée de validité du token en ms (défaut : `86400000` = 24h) |
+| `APP_BOOTSTRAP_ENABLED`      | `true` pour créer les comptes de démo au premier démarrage |
+| `APP_BOOTSTRAP_ADMIN_PASSWORD` | Mot de passe du compte `admin` (si bootstrap activé)     |
+| `APP_BOOTSTRAP_USER_PASSWORD`  | Mot de passe du compte `user` (si bootstrap activé)      |
 
 > **Générer un secret JWT** sous PowerShell :
 > ```powershell
@@ -61,13 +60,30 @@ Variables requises dans `.env` :
 docker compose up --build
 ```
 
-Les services démarrent dans l'ordre : MySQL → Application.
+Les services démarrent dans l'ordre : MySQL → Application → Frontend.
 
-| Service    | URL                                                       |
-|------------|-----------------------------------------------------------|
-| API        | http://localhost:8080                                     |
-| Swagger UI | http://localhost:8080/swagger-ui.html                     |
-| phpMyAdmin | http://localhost:8081 *(décommenter dans `compose.yaml`)* |
+| Service      | URL                                       |
+|--------------|-------------------------------------------|
+| Interface web | http://localhost:3000                    |
+| API           | http://localhost:8989                    |
+| Swagger UI    | http://localhost:8989/swagger-ui.html    |
+| phpMyAdmin    | http://localhost:8081                    |
+
+---
+
+## Rôles et autorisations
+
+| Rôle         | Accès                                                    |
+|--------------|----------------------------------------------------------|
+| `ROLE_USER`  | Lecture seule : `GET /api/employees` et `GET /api/employees/{id}` |
+| `ROLE_ADMIN` | CRUD complet : tous les endpoints employés               |
+
+Les comptes de démo créés par le bootstrap :
+
+| Compte  | Rôle         |
+|---------|--------------|
+| `user`  | `ROLE_USER`  |
+| `admin` | `ROLE_ADMIN` |
 
 ---
 
@@ -75,9 +91,9 @@ Les services démarrent dans l'ordre : MySQL → Application.
 
 ### Authentification
 
-| Méthode | Endpoint          | Description          | Auth |
-|---------|-------------------|----------------------|------|
-| `POST`  | `/api/auth/login` | Obtenir un token JWT | /    |
+| Méthode | Endpoint            | Description          | Auth |
+|---------|---------------------|----------------------|------|
+| `POST`  | `/api/auth/login`   | Obtenir un token JWT | /    |
 
 ### Employés
 
@@ -86,19 +102,19 @@ Tous les endpoints nécessitent un token JWT dans le header :
 Authorization: Bearer <token>
 ```
 
-| Méthode | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/employees` | Lister les employés (paginé) |
-| `GET` | `/api/employees/{id}` | Afficher un employé |
-| `POST` | `/api/employees` | Créer un employé |
-| `PUT` | `/api/employees/{id}` | Modifier un employé |
-| `DELETE` | `/api/employees/{id}` | Supprimer un employé |
+| Méthode   | Endpoint                | Description                  | Rôle requis  |
+|-----------|-------------------------|------------------------------|--------------|
+| `GET`     | `/api/employees`        | Lister les employés (paginé) | USER, ADMIN  |
+| `GET`     | `/api/employees/{id}`   | Afficher un employé          | USER, ADMIN  |
+| `POST`    | `/api/employees`        | Créer un employé             | ADMIN        |
+| `PUT`     | `/api/employees/{id}`   | Modifier un employé          | ADMIN        |
+| `DELETE`  | `/api/employees/{id}`   | Supprimer un employé         | ADMIN        |
 
 ### Utilitaires
 
-| Méthode | Endpoint | Description | Auth |
-|---|---|---|---|
-| `GET` | `/api/health` | État de l'application | / |
+| Méthode | Endpoint      | Description           | Auth |
+|---------|---------------|-----------------------|------|
+| `GET`   | `/api/health` | État de l'application | /    |
 
 ---
 
@@ -107,7 +123,7 @@ Authorization: Bearer <token>
 ### 1. Obtenir un token
 
 ```bash
-curl -X POST http://localhost:8080/api/auth/login \
+curl -X POST http://localhost:8989/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "VotreMotDePasse"}'
 ```
@@ -120,7 +136,7 @@ Réponse :
 ### 2. Appeler un endpoint protégé
 
 ```bash
-curl http://localhost:8080/api/employees \
+curl http://localhost:8989/api/employees \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..."
 ```
 
@@ -164,18 +180,20 @@ src/
 │       ├── db/migration/    # Scripts Flyway (V1__init_schema.sql)
 │       ├── application.properties
 │       └── application-dev.properties
-└── test/                    # Tests unitaires et d'intégration (39 tests)
+├── test/                    # Tests unitaires et d'intégration (39 tests)
+└── frontend/                # Interface web (HTML/CSS/JS · Nginx)
 ```
 
 ---
 
 ## Gestion des erreurs
 
-| Code | Cas |
-|---|---|
+| Code  | Cas                                                 |
+|-------|-----------------------------------------------------|
 | `400` | Données de requête invalides (validation des champs) |
-| `401` | Token absent, invalide ou expiré |
-| `404` | Ressource introuvable |
+| `401` | Token absent, invalide ou expiré                    |
+| `403` | Droits insuffisants pour cette action               |
+| `404` | Ressource introuvable                               |
 
 ---
 
