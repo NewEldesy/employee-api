@@ -4,6 +4,22 @@ API REST de gestion des employés, développée avec **Spring Boot 4** et sécur
 
 ---
 
+## Aperçu
+
+| Connexion | Dashboard admin |
+|:---------:|:---------------:|
+| ![Page de connexion](docs/screenshots/login.jpg) | ![Dashboard admin](docs/screenshots/dashboard-admin.jpg) |
+
+| Formulaire de création | Formulaire de modification |
+|:----------------------:|:--------------------------:|
+| ![Modal création](docs/screenshots/modal-create.jpg) | ![Modal modification](docs/screenshots/modal-edit.jpg) |
+
+| Accès refusé (ROLE_USER) | |
+|:------------------------:|:-:|
+| ![Accès refusé](docs/screenshots/access-denied.jpg) | |
+
+---
+
 ## Stack technique
 
 | Couche           | Technologie                             |
