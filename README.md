@@ -62,12 +62,13 @@ docker compose up --build
 
 Les services démarrent dans l'ordre : MySQL → Application → Frontend.
 
-| Service      | URL                                       |
-|--------------|-------------------------------------------|
-| Interface web | http://localhost:3000                    |
-| API           | http://localhost:8989                    |
-| Swagger UI    | http://localhost:8989/swagger-ui.html    |
-| phpMyAdmin    | http://localhost:8081                    |
+| Service       | URL                        |
+|---------------|----------------------------|
+| Interface web | http://localhost:3000      |
+| API           | http://localhost:8989      |
+| phpMyAdmin    | http://localhost:8081      |
+
+> **Swagger UI** est désactivé en production. Il n'est accessible qu'en profil `dev` (voir section Développement local).
 
 ---
 
@@ -146,7 +147,7 @@ curl http://localhost:8989/api/employees \
 
 ### Lancer avec le profil `dev`
 
-Le profil `dev` active les logs SQL et le bootstrap des comptes de démo.
+Le profil `dev` active les logs SQL, le bootstrap des comptes de démo et Swagger UI (`http://localhost:8080/swagger-ui.html`).
 
 ```powershell
 $env:APP_BOOTSTRAP_ADMIN_PASSWORD="Admin.1234!"
